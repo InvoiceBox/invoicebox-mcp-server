@@ -1,0 +1,14 @@
+node_modules/
+dist/
+*.log
+.env
+.env.local
+.state/
+.test-build/
+
+# Служебный список файлов зеркала: нужен скрипту, в истории ему делать нечего
+.mirror-files
+
+# Временный .npmrc выпуска: в истории ему делать нечего
+.npmrc
+.npmrc

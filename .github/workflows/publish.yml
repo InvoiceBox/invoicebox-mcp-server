@@ -1,0 +1,68 @@
+# Публикация в npm с подтверждением происхождения (provenance). Ради этого шага и
+# существует публичное зеркало: npm сверяет пакет с публичным исходником и сборкой в CI,
+# а `id-token: write` нужен, чтобы выдать подпись.
+#
+# Здесь же собирается состав зависимостей (SBOM) и прикладывается к релизу: провенанс
+# отвечает на «тот ли это код», SBOM — на «из чего он собран». Второй вопрос задают при
+# закупке и при разборе уязвимости в чужой библиотеке, и отвечать на него постфактум
+# дороже: восстановить дерево прошлого выпуска можно только из лок-файла того коммита.
+name: publish
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      # contents: write — только чтобы приложить SBOM к существующему релизу
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      # Внутренние проверки: в зеркале папки scripts нет, поэтому шаги условные —
+      # один и тот же файл работает и во внутренней сборке, и в публичной
+      - run: npm run purity
+        if: hashFiles('scripts/package-purity.mjs') != ''
+      - run: npm run registry-entry
+        if: hashFiles('scripts/registry-entry.mjs') != ''
+
+      # Дерево без devDependencies: у клиента установится только оно, а SBOM с нашими
+      # линтерами и типами описывал бы не то, что он получил
+      - name: Состав зависимостей (SBOM)
+        run: |
+          mkdir -p sbom
+          npm sbom --omit dev --sbom-format cyclonedx --sbom-type application > sbom/invoicebox-mcp-server.cyclonedx.json
+          npm sbom --omit dev --sbom-format spdx --sbom-type application > sbom/invoicebox-mcp-server.spdx.json
+
+      # Артефакт остаётся и у запуска через workflow_dispatch, когда релиза нет
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom/
+          if-no-files-found: error
+
+      - run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # Прикладываем после публикации: SBOM у релиза, к которому нет пакета, вводит в
+      # заблуждение сильнее, чем его отсутствие
+      - name: Приложить SBOM к релизу
+        if: github.event_name == 'release'
+        run: gh release upload "$TAG" sbom/*.json --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}

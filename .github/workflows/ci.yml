@@ -1,0 +1,35 @@
+# Проверки публичного зеркала. Внутренняя сборка живёт в GitLab; здесь важно, чтобы
+# любой, кто открыл репозиторий, видел зелёные проверки на том же коде.
+name: checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      # Внутренние проверки: в зеркале папки scripts нет, поэтому шаги условные —
+      # один и тот же файл работает и во внутренней сборке, и в публичной
+      - run: npm run purity
+        if: hashFiles('scripts/package-purity.mjs') != ''
+      - run: npm run registry-entry
+        if: hashFiles('scripts/registry-entry.mjs') != ''
+
+      # Подписи реестра у всего дерева зависимостей. Не блокирует: подпись зависит от
+      # чужого пакета и от доступности реестра, и остановленная из-за этого проверка
+      # ничего не защищает — а вот в журнале запуска увидеть проблему полезно
+      - run: npm audit signatures
+        continue-on-error: true

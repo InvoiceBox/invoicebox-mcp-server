@@ -1,0 +1,58 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
+  "name": "ru.invoicebox/mcp-server",
+  "description": "MCP-сервер Инвойсбокса: счета, отгрузки и возвраты по просьбе человека",
+  "version": "0.2.1",
+  "websiteUrl": "https://docs.invoicebox.ru/mcp/",
+  "repository": {
+    "url": "https://github.com/InvoiceBox/invoicebox-mcp-server",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@invoicebox/mcp-server",
+      "version": "0.2.1",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "INVOICEBOX_API_TOKEN",
+          "description": "Токен API Инвойсбокса. Выпускается в личном кабинете; правами токена ограничивается то, что сервер вообще может сделать",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "INVOICEBOX_MERCHANT_ID",
+          "description": "Идентификатор магазина, от имени которого работает сервер",
+          "isRequired": true,
+          "isSecret": false
+        },
+        {
+          "name": "INVOICEBOX_ENV",
+          "description": "Контур: demo или prod. По умолчанию demo — боевой включается явно",
+          "isRequired": false,
+          "isSecret": false,
+          "default": "demo"
+        },
+        {
+          "name": "INVOICEBOX_TOOLSETS",
+          "description": "Наборы инструментов через запятую: read по умолчанию, write и refund включаются явно",
+          "isRequired": false,
+          "isSecret": false,
+          "default": "read"
+        },
+        {
+          "name": "INVOICEBOX_STATE_DIR",
+          "description": "Каталог состояния: без него защита от дублей действует только в пределах одного запуска",
+          "isRequired": false,
+          "isSecret": false,
+          "default": ".state"
+        }
+      ]
+    }
+  ]
+}

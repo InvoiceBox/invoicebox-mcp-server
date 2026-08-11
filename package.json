@@ -1,0 +1,55 @@
+{
+  "name": "@invoicebox/mcp-server",
+  "version": "0.2.1",
+  "description": "MCP-сервер Инвойсбокса: счета, отгрузки и возвраты по просьбе человека",
+  "mcpName": "ru.invoicebox/mcp-server",
+  "license": "MIT",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/InvoiceBox/invoicebox-mcp-server.git"
+  },
+  "homepage": "https://docs.invoicebox.ru/mcp/",
+  "bugs": {
+    "url": "https://www.invoicebox.ru/ru/contacts"
+  },
+  "keywords": [
+    "mcp",
+    "invoicebox",
+    "invoice",
+    "payments"
+  ],
+  "engines": {
+    "node": ">=20.11"
+  },
+  "bin": {
+    "invoicebox-mcp-server": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "tsc -p tsconfig.test.json && node --test \".test-build/test/*.test.js\"",
+    "lint": "eslint src test",
+    "dev": "node --experimental-strip-types src/index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.22.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "eslint": "^9.39.5",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.66.0"
+  }
+}
